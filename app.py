@@ -124,13 +124,15 @@ class InstallerApp:
             args = ["first-install", "--identity", key]
             if host:
                 args += ["--host", host]
+            ps_args = ", ".join("'" + value.replace("'", "''") + "'" for value in args)
             ps = (
                 "$ErrorActionPreference='Stop'; "
                 f"$u='{UPSTREAM_INSTALL_PS1}'; "
                 "$s=Invoke-RestMethod -Uri $u; "
                 "$sb=[scriptblock]::Create($s); "
+                f"$a=@({ps_args}); "
                 "$global:LASTEXITCODE=1; "
-                f"& $sb @({', '.join("'" + a.replace("'", "''") + "'" for a in args)}); "
+                "& $sb @a; "
                 "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"
             )
             result = run_powershell(ps)
